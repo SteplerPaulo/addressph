@@ -14,21 +14,20 @@ class ApiController extends AppController {
 		if($this->RequestHandler->ext == 'json'){
 			$this->layout = false;
 			header("Access-Control-Allow-Origin: *");
-			$model= isset($_GET['search'])?$_GET['search']:'Municipality';
-			$type= isset($_GET['type'])?$_GET['type']:'all';
+			$model = isset($_GET['search'])?ucfirst($_GET['search']):'Profile';
+			$type = isset($_GET['type'])?strtolower($_GET['type']):'all';
+			$recursive = isset($_GET['recursive'])?$_GET['recursive']:0;
 			$fields = array();
 			$conditions=array();
 			$page = 1-1;
 			$limit = 50;
 			$offset =  $page*$limit;
-			
 			if(isset($_GET['fields'])){
 				$fields = explode(',',$_GET['fields']);
 			}else{
-				$fields = array();
 				$schema = $this->$model->_schema;
 				foreach($schema as $field => $attr){
-					if(strpos($field, 'id') === false){
+					if(strpos($field, '_id') === false){
 						array_push($fields,$field);
 					}
 				}
@@ -40,15 +39,15 @@ class ApiController extends AppController {
 					$conditions['OR'][$model.'.'.$d.' LIKE']='%'.$_GET['filter'].'%';
 				}
 			}
-				
-			
-			$data = $this->$model->find($type, array(
+			//$fields = implode(',',$fields);
+			$data = $this->$model->find($type, array(	
+				'recursive'=>$recursive,
 				'conditions'=>$conditions,
 				'fields' => $fields,
-				'offset' => $offset,
+				//'offset' => $offset,
 				//'limit' => $limit
 			));
-		
+			
 			$this->set(compact('data'));
 		}
 	}
